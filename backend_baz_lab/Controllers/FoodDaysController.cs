@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend_baz_lab.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace backend_baz_lab.Controllers
 {
@@ -24,21 +27,21 @@ namespace backend_baz_lab.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FoodDay>>> GetFoodDay()
         {
-          if (_context.FoodDay == null)
-          {
-              return NotFound();
-          }
-            return await _context.FoodDay.ToListAsync();
+            if (_context.FoodDay == null)
+            {
+                return NotFound();
+            }
+            return await _context.FoodDay.Include(m => m.Meals).ToListAsync();
         }
 
         // GET: api/FoodDays/5
         [HttpGet("{id}")]
         public async Task<ActionResult<FoodDay>> GetFoodDay(int id)
         {
-          if (_context.FoodDay == null)
-          {
-              return NotFound();
-          }
+            if (_context.FoodDay == null)
+            {
+                return NotFound();
+            }
             var foodDay = await _context.FoodDay.FindAsync(id);
 
             if (foodDay == null)
@@ -85,10 +88,10 @@ namespace backend_baz_lab.Controllers
         [HttpPost]
         public async Task<ActionResult<FoodDay>> PostFoodDay(FoodDay foodDay)
         {
-          if (_context.FoodDay == null)
-          {
-              return Problem("Entity set 'FoodDayContext.FoodDay'  is null.");
-          }
+            if (_context.FoodDay == null)
+            {
+                return Problem("Entity set 'FoodDayContext.FoodDay'  is null.");
+            }
             _context.FoodDay.Add(foodDay);
             await _context.SaveChangesAsync();
 
@@ -121,48 +124,150 @@ namespace backend_baz_lab.Controllers
         }
 
 
-        ////мои функции
-        //// GET: api/FoodDays // вывод количества каллорий за день
-        //[Route("SumKKaloDay")]
-        //[HttpGet]
+        //мои функции
+        //GET: api/FoodDays // вывод количества каллорий за день
+        [Route("SumKKalofDay")]
+        [HttpGet]
 
-        //public ActionResult<string> SumKKaloDay(int idDay)
-        //{
-        //    if (_context.FoodDay == null)
+        public async Task<ActionResult<double>> SumKKalofDay(int idDay)
+        {
+            if (_context.FoodDay == null)
+            {
+                return NotFound();
+            }
+            var foodDay = _context.FoodDay.Include(m => m.Meals).FirstOrDefault(fd => fd.Id == idDay);
+
+            if (foodDay == null)
+            {
+                return BadRequest();
+            }
+            return foodDay.SumKkal();
+
+        }
+        [Route("PercentFPC")]
+        [HttpGet]
+        public async Task<ActionResult<string>> PercentFatProteinAndCarbon(int idDay)
+        {
+            if (_context.FoodDay == null)
+            {
+                return NotFound();
+            }
+            var foodDay = _context.FoodDay.Include(m => m.Meals).FirstOrDefault(fd => fd.Id == idDay);
+
+            if (foodDay == null)
+            {
+                return BadRequest();
+            }
+            return foodDay.PercentFatProteinAndCarbon();
+        }
+
+        [Route("LastTimeIEatThis")]
+        [HttpGet]
+        public async Task<ActionResult<string>> lastTimeIEatThis(int idMeal)
+        {
+            if (_context.FoodDay == null)
+            {
+                return NotFound();
+            }
+            var foodDay = _context.FoodDay.Include(m => m.Meals).OrderByDescending(data => data.DateOfMeal).FirstOrDefault(fd => fd.Meals.Any(m => m.Id == idMeal));
+
+            //var meal = _context.Meal.Where(o => o.Id == idMeal).FirstOrDefault();
+            if (foodDay == null)
+                return BadRequest();
+
+            return foodDay.DateOfMeal.ToShortDateString() ;
+        }
+
+        //    [Route("AddMeal")]
+        //    [HttpPut] //закидываес еду в список
+        //    //public async Task<ActionResult<FoodDay>> AddMealinFoodDay(int idDay, int idMeal)
+        //    //{
+        //    //    if (_context.FoodDay == null)
+        //    //    {
+        //    //        return NotFound();
+        //    //    }
+        //    //    var foodDay = await _context.FoodDay.FindAsync(idDay);
+        //    //    var meal = await _context.Meal.FindAsync(idMeal);
+
+        //    //    if (meal == null)
+        //    //    {
+        //    //        return NotFound();
+        //    //    }
+
+        //    //    if (foodDay == null)
+        //    //    {
+        //    //        return NotFound();
+        //    //    }
+
+        //    //    foodDay.Meals.Add(meal);
+        //    //    await _context.SaveChangesAsync();
+
+        //    //    return foodDay;
+        //    //}
+
+        //    public async Task<IActionResult> PutMeal(int idDay, int idMeal, FoodDay foodDay)
         //    {
-        //        return NotFound();
-        //    }
-        //    var foodDay = _context.FoodDay.FindAsync(idDay);
+        //        if (idDay != foodDay.Id)
+        //        {
+        //            return BadRequest();
+        //        }
 
-        //    if (foodDay == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return "12241";
-        //}
+        //        _context.Entry(foodDay).State = EntityState.Modified;
 
-        //[Route("AddMeal")]
-        //[HttpPost] //закидываес еду в список
-        //public async Task<ActionResult<FoodDay>> AddMealinFoodDay(int idDay, int idMeal)
-        //{
-        //    if (_context.FoodDay == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var foodDay = await _context.FoodDay.FindAsync(idDay);
-        //    var meal = await _context.Meal.FindAsync(idMeal);
-        //    foodDay.AddMealinList(meal);
+        //        try
+        //        {
+        //            var meal = await _context.Meal.FindAsync(idMeal);
+        //            foodDay.Meals.Add(meal);
+        //            _context.SaveChanges();
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!FoodDayExists(idDay))
+        //            {
+        //                return NotFound();
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
 
-        //    if (foodDay == null)
-        //    {
-        //        return NotFound();
+        //        return NoContent();
         //    }
 
-        //    return foodDay;
-        //}
+
+        [HttpPut()]
+        [Route("AddMeal")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddMeal(int dayId, int MealId)
+        {
+            var meal = _context.Meal.Where(o => o.Id == MealId).FirstOrDefault();
+
+            var foodDay = _context.FoodDay.Where(p => p.Id == dayId).FirstOrDefault();
+
+            foodDay.AddMeal(meal);
+            _context.Entry(foodDay).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
+        [HttpDelete()]
+        [Route("DeleteMeal")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteMeal(int dayId, int MealId)
+        {
+            var meal = _context.Meal.Where(o => o.Id == MealId).FirstOrDefault();
+
+            var foodDay = _context.FoodDay.Where(p => p.Id == dayId).FirstOrDefault();
+
+            foodDay.DeleteMeal(meal);
+            _context.Entry(foodDay).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
     }
-
-    
-
 
 }
