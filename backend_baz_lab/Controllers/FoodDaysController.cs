@@ -9,6 +9,8 @@ using backend_baz_lab.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using System.Text.Json.Nodes;
+using NuGet.Protocol;
 
 namespace backend_baz_lab.Controllers
 {
@@ -146,7 +148,7 @@ namespace backend_baz_lab.Controllers
         }
         [Route("PercentFPC")]
         [HttpGet]
-        public async Task<ActionResult<string>> PercentFatProteinAndCarbon(int idDay)
+        public async Task<ActionResult<BSHUPercent>> PercentFatProteinAndCarbon(int idDay)
         {
             if (_context.FoodDay == null)
             {
@@ -158,12 +160,15 @@ namespace backend_baz_lab.Controllers
             {
                 return BadRequest();
             }
-            return foodDay.PercentFatProteinAndCarbon();
+            
+            var result = foodDay.PercentFatProteinAndCarbon();
+
+            return result;
         }
 
         [Route("LastTimeIEatThis")]
         [HttpGet]
-        public async Task<ActionResult<string>> lastTimeIEatThis(int idMeal)
+        public async Task<ActionResult<DateTime>> lastTimeIEatThis(int idMeal)
         {
             if (_context.FoodDay == null)
             {
@@ -171,70 +176,12 @@ namespace backend_baz_lab.Controllers
             }
             var foodDay = _context.FoodDay.Include(m => m.Meals).OrderByDescending(data => data.DateOfMeal).FirstOrDefault(fd => fd.Meals.Any(m => m.Id == idMeal));
 
-            //var meal = _context.Meal.Where(o => o.Id == idMeal).FirstOrDefault();
+            var meal = _context.Meal.Where(o => o.Id == idMeal).FirstOrDefault();
             if (foodDay == null)
                 return BadRequest();
 
-            return foodDay.DateOfMeal.ToShortDateString() ;
+            return foodDay.WhenIEatThis(meal);
         }
-
-        //    [Route("AddMeal")]
-        //    [HttpPut] //закидываес еду в список
-        //    //public async Task<ActionResult<FoodDay>> AddMealinFoodDay(int idDay, int idMeal)
-        //    //{
-        //    //    if (_context.FoodDay == null)
-        //    //    {
-        //    //        return NotFound();
-        //    //    }
-        //    //    var foodDay = await _context.FoodDay.FindAsync(idDay);
-        //    //    var meal = await _context.Meal.FindAsync(idMeal);
-
-        //    //    if (meal == null)
-        //    //    {
-        //    //        return NotFound();
-        //    //    }
-
-        //    //    if (foodDay == null)
-        //    //    {
-        //    //        return NotFound();
-        //    //    }
-
-        //    //    foodDay.Meals.Add(meal);
-        //    //    await _context.SaveChangesAsync();
-
-        //    //    return foodDay;
-        //    //}
-
-        //    public async Task<IActionResult> PutMeal(int idDay, int idMeal, FoodDay foodDay)
-        //    {
-        //        if (idDay != foodDay.Id)
-        //        {
-        //            return BadRequest();
-        //        }
-
-        //        _context.Entry(foodDay).State = EntityState.Modified;
-
-        //        try
-        //        {
-        //            var meal = await _context.Meal.FindAsync(idMeal);
-        //            foodDay.Meals.Add(meal);
-        //            _context.SaveChanges();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!FoodDayExists(idDay))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-
-        //        return NoContent();
-        //    }
-
 
         [HttpPut()]
         [Route("AddMeal")]

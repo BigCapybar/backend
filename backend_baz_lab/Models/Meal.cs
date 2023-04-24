@@ -1,4 +1,6 @@
-﻿namespace backend_baz_lab.Models
+﻿using System.Reflection;
+
+namespace backend_baz_lab.Models
 {
     public class Meal
     {
@@ -8,5 +10,6 @@
         public double Fats { get; set; }
         public double Proteins { get; set; }
         public double Kkal { get; set; }
+        
     }
 }
