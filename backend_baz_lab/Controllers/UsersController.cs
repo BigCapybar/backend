@@ -23,6 +23,7 @@ namespace backend_baz_lab.Controllers
 
         // GET: api/Users
         [HttpGet]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<IEnumerable<User>>> GetUser()
         {
           if (_context.User == null)
@@ -34,6 +35,7 @@ namespace backend_baz_lab.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
           if (_context.User == null)
@@ -53,6 +55,7 @@ namespace backend_baz_lab.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
             if (id != user.Id)
@@ -88,7 +91,7 @@ namespace backend_baz_lab.Controllers
         {
           if (_context.User == null)
           {
-              return Problem("Entity set 'FoodDayContext.User'  is null.");
+              return Problem("Entity set 'FoodDayContext.User' is null.");
           }
             _context.User.Add(user);
             await _context.SaveChangesAsync();

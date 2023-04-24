@@ -128,9 +128,9 @@ namespace backend_baz_lab.Controllers
 
         //мои функции
         //GET: api/FoodDays // вывод количества каллорий за день
-        [Route("SumKKalofDay")]
         [HttpGet]
-
+        [Route("SumKKalofDay")]
+        [Authorize(Roles = "user")]
         public async Task<ActionResult<double>> SumKKalofDay(int idDay)
         {
             if (_context.FoodDay == null)
@@ -146,8 +146,10 @@ namespace backend_baz_lab.Controllers
             return foodDay.SumKkal();
 
         }
-        [Route("PercentFPC")]
+
         [HttpGet]
+        [Route("PercentFPC")]
+        [Authorize(Roles = "user")]
         public async Task<ActionResult<BSHUPercent>> PercentFatProteinAndCarbon(int idDay)
         {
             if (_context.FoodDay == null)
@@ -166,8 +168,9 @@ namespace backend_baz_lab.Controllers
             return result;
         }
 
-        [Route("LastTimeIEatThis")]
         [HttpGet]
+        [Route("LastTimeIEatThis")]
+        [Authorize(Roles = "user")]
         public async Task<ActionResult<DateTime>> lastTimeIEatThis(int idMeal)
         {
             if (_context.FoodDay == null)
@@ -185,7 +188,7 @@ namespace backend_baz_lab.Controllers
 
         [HttpPut()]
         [Route("AddMeal")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "user")]
         public async Task<IActionResult> AddMeal(int dayId, int MealId)
         {
             var meal = _context.Meal.Where(o => o.Id == MealId).FirstOrDefault();
@@ -201,7 +204,8 @@ namespace backend_baz_lab.Controllers
 
         [HttpDelete()]
         [Route("DeleteMeal")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "user")]
+        
         public async Task<IActionResult> DeleteMeal(int dayId, int MealId)
         {
             var meal = _context.Meal.Where(o => o.Id == MealId).FirstOrDefault();
